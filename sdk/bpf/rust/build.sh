@@ -16,6 +16,6 @@ set -e
 source "$bpf_sdk"/env.sh
 
 cd "$1"
-"$XARGO" build --target "$XARGO_TARGET" --release --no-default-features --features program
+"$XARGO" build --target "$XARGO_TARGET" --no-default-features --features program
 
 { { set +x; } 2>/dev/null; echo Success; }

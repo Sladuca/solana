@@ -26,4 +26,4 @@ EOF
     cd ..
   done
 )
-exec "$XARGO" build --target "$XARGO_TARGET" --release "$@"
+exec "$XARGO" build --target "$XARGO_TARGET" "$@"

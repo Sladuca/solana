@@ -22,6 +22,7 @@ struct Config {
     offline: bool,
     verbose: bool,
     workspace: bool,
+    no_strip: bool,
 }
 
 impl Default for Config {
@@ -40,6 +41,7 @@ impl Default for Config {
             offline: false,
             verbose: false,
             workspace: false,
+            no_strip: false,
         }
     }
 }
@@ -201,7 +203,7 @@ fn build_bpf_package(
             });
         }
 
-        if file_older_or_missing(&program_unstripped_so, &program_so) {
+        if !config.no_strip && file_older_or_missing(&program_unstripped_so, &program_so) {
             spawn(
                 &config.bpf_sdk.join("scripts/strip.sh"),
                 &[&program_unstripped_so, &program_so],
@@ -209,7 +211,7 @@ fn build_bpf_package(
         }
 
         if config.dump && file_older_or_missing(&program_unstripped_so, &program_dump) {
-            spawn(
+            (
                 &config.bpf_sdk.join("scripts/dump.sh"),
                 &[&program_unstripped_so, &program_dump],
             );
@@ -336,6 +338,15 @@ fn main() {
                 .alias("all")
                 .help("Build all BPF packages in the workspace"),
         )
+        .arg(
+            Arg::with_name("no_strip")
+                .long("no-strip")
+                .takes_value(false)
+                .help(
+                    "Do not strip symbols from the binary. This will result in a much larger \
+                    binary. Typically used for debugging",
+                ),
+        )
         .get_matches_from(args);
 
     let bpf_sdk = value_t_or_exit!(matches, "bpf_sdk", PathBuf);
@@ -367,6 +378,7 @@ fn main() {
         offline: matches.is_present("offline"),
         verbose: matches.is_present("verbose"),
         workspace: matches.is_present("workspace"),
+        no_strip: matches.is_present("no_strip"),
     };
     let manifest_path = value_t!(matches, "manifest_path", PathBuf).ok();
     build_bpf(config, manifest_path);
